@@ -1,0 +1,9 @@
+I gitbash
+
+git add .
+git commit -m "beskriv endringen"
+git push
+
+git add .
+git commit -m "azure Test"
+git push
