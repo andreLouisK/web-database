@@ -3,8 +3,9 @@ import './App.css'
 
 function App() {
   const [innlegg, setInnlegg] = useState([]);
+  const [nyTittel, setNyTittel] = useState("");
+  const [nyttInnhold, setNyttInnhold] = useState("");
 
-  // Denne funksjonen skal vi koble til Azure Function senere
   const fetchPosts = async () => {
     try {
       const response = await fetch('/api/GetPosts');
@@ -12,6 +13,26 @@ function App() {
       setInnlegg(data);
     } catch (error) {
       console.error("Klarte ikke hente data:", error);
+    }
+  };
+
+  const handlePublish = async () => {
+    if (!nyTittel) return alert("Du må ha en tittel!");
+
+    try {
+      const response = await fetch('/api/CreatePost', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ Tittel: nyTittel, Innhold: nyttInnhold, BildeUrl: "" })
+      });
+
+      if (response.ok) {
+        setNyTittel("");
+        setNyttInnhold("");
+        fetchPosts(); // Last listen på nytt for å se det nye innlegget!
+      }
+    } catch (error) {
+      console.error("Feil ved publisering:", error);
     }
   };
 
@@ -23,19 +44,27 @@ function App() {
     <div className="App">
       <h1>Mester-Logg v2</h1>
       
-      <div className="w-20 h-20 bg-red-500">
-        <input type="text" placeholder="Tittel" id="tittel" />
-        <textarea placeholder="Innhold"></textarea>
-        <input type="file" accept="image/*" />
-        <button>Publiser Innlegg</button>
+      <div className="input-container" style={{marginBottom: '40px', display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '400px', margin: '0 auto'}}>
+        <input 
+          type="text" 
+          placeholder="Tittel" 
+          value={nyTittel} 
+          onChange={(e) => setNyTittel(e.target.value)} 
+        />
+        <textarea 
+          placeholder="Hva har du gjort i dag?" 
+          value={nyttInnhold} 
+          onChange={(e) => setNyttInnhold(e.target.value)}
+        ></textarea>
+        <button onClick={handlePublish}>Publiser Innlegg</button>
       </div>
 
       <div className="liste">
         {innlegg.map((post) => (
-          <div key={post.Id} className="post-card">
-            {post.BildeUrl && <img src={post.BildeUrl} alt={post.Tittel} style={{width: '200px'}} />}
+          <div key={post.Id} className="post-card" style={{border: '1px solid #ccc', margin: '10px', padding: '10px', borderRadius: '8px'}}>
             <h3>{post.Tittel}</h3>
             <p>{post.Innhold}</p>
+            <small>{new Date(post.Tidspunkt).toLocaleString()}</small>
           </div>
         ))}
       </div>
