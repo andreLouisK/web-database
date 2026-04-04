@@ -23,7 +23,7 @@ function App() {
     <div className="App">
       <h1>Mester-Logg v2</h1>
       
-      <div className="skjema">
+      <div className="w-20 h-20 bg-red-500">
         <input type="text" placeholder="Tittel" id="tittel" />
         <textarea placeholder="Innhold"></textarea>
         <input type="file" accept="image/*" />
