@@ -8,18 +8,18 @@ function App() {
 
   const [loading, setLoading] = useState(true);
 
-  const fetchPosts = async () => {
+  const fetchPosts = async (showLoader = true) => {
     try {
-      setLoading(true); // start loading
-
+      if (showLoader) setLoading(true);
+  
       const response = await fetch('/api/GetPosts');
       const data = await response.json();
       setInnlegg(data);
-
+  
     } catch (error) {
       console.error("Klarte ikke hente data:", error);
     } finally {
-      setLoading(false); // ferdig loading (uansett)
+      if (showLoader) setLoading(false);
     }
   };
 
@@ -28,14 +28,15 @@ function App() {
       const response = await fetch(`/api/deletepost/${id}`, {
         method: 'DELETE'
       });
-
+  
       if (!response.ok) {
         throw new Error("Noe gikk galt ved sletting");
       }
-
+  
       console.log("Slettet!");
-      fetchPosts();
-
+      setInnlegg(prev => prev.filter(post => post.Id !== id));
+      fetchPosts(false); // ❌ ingen spinner
+  
     } catch (error) {
       console.error("Feil ved sletting:", error);
     }
@@ -54,12 +55,15 @@ function App() {
       if (response.ok) {
         setNyTittel("");
         setNyttInnhold("");
-        fetchPosts(); // Last listen på nytt for å se det nye innlegget!
+        fetchPosts(false); // ❌ ingen spinner
+        const newPost = await response.json();
+setInnlegg(prev => [newPost, ...prev]);
       }
     } catch (error) {
       console.error("Feil ved publisering:", error);
     }
   };
+  
 
   useEffect(() => {
     fetchPosts();
