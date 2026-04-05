@@ -16,6 +16,16 @@ function App() {
     }
   };
 
+  const handleDelete = async (id) => {
+    try {
+      const response = await fetch(`/api/DeletePost?id=${id}`, {
+        method: 'DELETE'
+      });
+    } catch (error) {
+      console.error("Feil ved sletting:", error);
+    }
+  };
+
   const handlePublish = async () => {
     if (!nyTittel) return alert("Du må ha en tittel!");
 
