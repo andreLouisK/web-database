@@ -18,11 +18,14 @@ function App() {
 
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`/api/DeletePost?id=${id}`, {
+      const response = await fetch(`/api/deletepost/${id}`, {
         method: 'DELETE'
       });
     } catch (error) {
       console.error("Feil ved sletting:", error);
+    }
+    if (response.ok) {
+      fetchPosts();
     }
   };
 
