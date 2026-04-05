@@ -62,6 +62,8 @@ function App() {
       <div className="liste">
         {innlegg.map((post) => (
           <div key={post.Id} className="post-card" style={{border: '1px solid #ccc', margin: '10px', padding: '10px', borderRadius: '8px'}}>
+            <button className="absolute top-0 right-0" 
+            onClick={() => handleDelete(post.Id)}>Slett</button>
             <h3>{post.Tittel}</h3>
             <p>{post.Innhold}</p>
             <small>{new Date(post.Tidspunkt).toLocaleString()}</small>
