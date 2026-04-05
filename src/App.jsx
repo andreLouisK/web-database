@@ -21,11 +21,15 @@ function App() {
       const response = await fetch(`/api/deletepost/${id}`, {
         method: 'DELETE'
       });
+  
+      if (!response.ok) {
+        throw new Error("Noe gikk galt ved sletting");
+      }
+  
+      console.log("Slettet!");
+  
     } catch (error) {
       console.error("Feil ved sletting:", error);
-    }
-    if (response.ok) {
-      fetchPosts();
     }
   };
 
