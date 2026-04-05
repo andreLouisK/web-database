@@ -1,16 +1,71 @@
-# React + Vite
+# Full-Stack Azure Web App (React + Azure Functions + SQL)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern full-stack application built with **React** (Vite), **Azure Functions** (Node.js), and **Azure SQL Database**. This project follows a "serverless" architecture and utilizes DevOps best practices for automated deployment.
 
-Currently, two official plugins are available:
+## Architecture
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+To ensure scalability and security, the application is designed with the following cloud architecture:
 
-## React Compiler
+![System Architecture](docs/Web-Database.png)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Components:
+* **Frontend:** React application built with Vite, hosted on **Azure Static Web Apps**.
+* **Backend:** Serverless API developed with **Azure Functions** (HTTP Triggers).
+* **Database:** **Azure SQL Database** (Serverless tier) for persistent data storage.
+* **CI/CD:** Automated deployment via **GitHub Actions**, building and deploying both frontend and backend on every push to `main`.
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🚀 Features
+
+The application supports full **CRUD** (Create, Read, Update, Delete) operations:
+- [x] **Fetch:** Retrieve posts from the SQL database via API.
+- [x] **Create:** Add new posts with immediate UI updates.
+- [x] **Delete:** Remove existing posts using RESTful DELETE calls.
+- [x] **Security:** Secure database connectivity using Azure App Settings and Environment Variables.
+
+---
+
+## 🛠 Tech Stack
+
+| Area | Technology |
+| :--- | :--- |
+| **Frontend** | React, Vite, JavaScript, CSS |
+| **Backend** | Node.js, Azure Functions |
+| **Database** | Azure SQL (T-SQL) |
+| **Hosting** | Azure Static Web Apps |
+| **Workflow** | GitHub Actions (CI/CD) |
+
+---
+
+## 💻 Local Development
+
+To run this project locally, ensure you have the [Azure Functions Core Tools](https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local) installed.
+
+1.  **Clone the repository:**
+    ```bash
+    git clone [https://github.com/andreLouisK/web-database.git](https://github.com/andreLouisK/web-database.git)
+    ```
+
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    cd api
+    npm install
+    ```
+
+3.  **Configure environment variables:**
+    Create a `local.settings.json` file in the `api` folder with your SQL Connection String.
+
+4.  **Run the project:**
+    Use the SWA CLI to run both frontend and backend simultaneously:
+    ```bash
+    swa start http://localhost:5173 --api-location ./api
+    ```
+
+---
+
+## 📈 Roadmap
+- [ ] Implement **Azure Blob Storage** for image uploads.
+- [ ] Add user authentication using **Static Web Apps Auth**.
+- [ ] Optimize performance with **Client-side caching** (localStorage).
