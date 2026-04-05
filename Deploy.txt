@@ -5,5 +5,5 @@ git commit -m "beskriv endringen"
 git push
 
 git add .
-git commit -m "Oppdaterte README med arkitekturdiagram"
+git commit -m "Add KeepAlive timer"
 git push
