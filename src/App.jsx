@@ -27,6 +27,7 @@ function App() {
       }
   
       console.log("Slettet!");
+      fetchPosts();
   
     } catch (error) {
       console.error("Feil ved sletting:", error);
