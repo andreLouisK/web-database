@@ -16,11 +16,6 @@ To ensure scalability and security, the application is designed with the followi
 
 ---
 
-### 🛠 Background Tasks & Reliability
-- **Keep-Alive Timer:** Implemented an Azure Function with a **Timer Trigger** (`0 */15 * * * *`). This ensures the serverless environment remains "warm," reducing cold-start latency for users and maintaining a consistent connection to the SQL database.
-
----
-
 ## 🚀 Features
 
 The application supports full **CRUD** (Create, Read, Update, Delete) operations:
@@ -36,7 +31,7 @@ The application supports full **CRUD** (Create, Read, Update, Delete) operations
 | Area | Technology |
 | :--- | :--- |
 | **Frontend** | React, Vite, JavaScript, CSS |
-| **Backend** | Node.js, Azure Functions (HTTP & Timer Triggers)|
+| **Backend** | Node.js, Azure Functions |
 | **Database** | Azure SQL (T-SQL) |
 | **Hosting** | Azure Static Web Apps |
 | **Workflow** | GitHub Actions (CI/CD) |
