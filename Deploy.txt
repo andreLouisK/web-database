@@ -5,5 +5,5 @@ git commit -m "beskriv endringen"
 git push
 
 git add .
-git commit -m "lagt til slett bilde fra blob ved DeletePost"
+git commit -m "UI løft"
 git push
