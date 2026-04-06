@@ -9,16 +9,18 @@ function App() {
   const [nyTittel, setNyTittel] = useState("");
   const [nyttInnhold, setNyttInnhold] = useState("");
   const [loading, setLoading] = useState(true);
+  const [valgtFil, setValgtFil] = useState(null);
+  const [lasterOpp, setLasterOpp] = useState(false); // For å vise en "laster..." melding
 
   const fetchPosts = async (showLoader = true) => {
     try {
       if (showLoader) setLoading(true);
-      
+
       // Bruker nå den fulle URL-en
       const response = await fetch(`${API_BASE_URL}/GetPosts`);
       const data = await response.json();
       setInnlegg(data);
-  
+
     } catch (error) {
       console.error("Klarte ikke hente data:", error);
     } finally {
@@ -31,12 +33,12 @@ function App() {
       const response = await fetch(`${API_BASE_URL}/deletepost/${id}`, {
         method: 'DELETE'
       });
-  
+
       if (!response.ok) throw new Error("Noe gikk galt ved sletting");
-  
+
       setInnlegg(prev => prev.filter(post => post.Id !== id));
       fetchPosts(false);
-  
+
     } catch (error) {
       console.error("Feil ved sletting:", error);
     }
@@ -44,23 +46,62 @@ function App() {
 
   const handlePublish = async () => {
     if (!nyTittel) return alert("Du må ha en tittel!");
+    setLasterOpp(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/CreatePost`, {
+      let bildeUrl = "";
+
+      // STEG 1: Last opp bilde hvis det er valgt
+      if (valgtFil) {
+        const formData = new FormData();
+        formData.append('file', valgtFil);
+
+        const uploadRes = await fetch(`${API_BASE_URL}/UploadImage`, {
+          method: 'POST',
+          body: formData // Fetch setter automatisk riktig Content-Type for FormData
+        });
+
+        if (uploadRes.ok) {
+          const data = await uploadRes.json();
+          bildeUrl = data.url; // Dette er URL-en fra Azure Blob Storage
+        } else {
+          alert("Kunne ikke laste opp bilde.");
+          setLasterOpp(false);
+          return;
+        }
+      }
+
+      // STEG 2: Opprett innlegget i SQL
+      const postRes = await fetch(`${API_BASE_URL}/CreatePost`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ Tittel: nyTittel, Innhold: nyttInnhold, BildeUrl: "" })
+        body: JSON.stringify({
+          Tittel: nyTittel,
+          Innhold: nyttInnhold,
+          BildeUrl: bildeUrl
+        })
       });
 
-      if (response.ok) {
+      if (postRes.ok) {
         setNyTittel("");
         setNyttInnhold("");
+        setValgtFil(null);
+        // Nullstill fil-inputen i DOM-en hvis nødvendig
         fetchPosts(false);
       }
     } catch (error) {
-      console.error("Feil ved publisering:", error);
+      console.error("Feil under publisering:", error);
+    } finally {
+      setLasterOpp(false);
+      <input
+  key={valgtFil ? "valgt" : "tom"} // Dette tvinger feltet til å nullstille seg når valgtFil blir null
+  type="file"
+  accept="image/*"
+  onChange={(e) => setValgtFil(e.target.files[0])}
+/>
     }
   };
+
 
   useEffect(() => {
     fetchPosts();
@@ -70,19 +111,29 @@ function App() {
     <div className="App">
       <h1>Mester-Logg v2</h1>
 
-      <div className="input-container" style={{ marginBottom: '40px', display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '400px', margin: '0 auto' }}>
+      <div className="nytt-innlegg-skjema">
         <input
           type="text"
-          placeholder="Tittel"
+          placeholder="Tittel..."
           value={nyTittel}
           onChange={(e) => setNyTittel(e.target.value)}
         />
         <textarea
-          placeholder="Hva har du gjort i dag?"
+          placeholder="Hva tenker du på?"
           value={nyttInnhold}
           onChange={(e) => setNyttInnhold(e.target.value)}
-        ></textarea>
-        <button onClick={handlePublish}>Publiser Innlegg</button>
+        />
+
+        {/* Ny fil-velger */}
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setValgtFil(e.target.files[0])}
+        />
+
+        <button onClick={handlePublish} disabled={lasterOpp}>
+          {lasterOpp ? "Publiserer..." : "Lag innlegg"}
+        </button>
       </div>
 
       <div className="liste">
@@ -98,6 +149,13 @@ function App() {
                 onClick={() => handleDelete(post.Id)}>Slett</button>
               <h3>{post.Tittel}</h3>
               <p>{post.Innhold}</p>
+              {post.BildeUrl && (
+                <img
+                  src={post.BildeUrl}
+                  alt={post.Tittel}
+                  style={{ maxWidth: '100%', marginTop: '10px', borderRadius: '8px' }}
+                />
+              )}
               <small>{new Date(post.Tidspunkt).toLocaleString()}</small>
             </div>
           ))

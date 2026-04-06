@@ -1,13 +1,21 @@
+const sql = require('mssql');
+
 module.exports = async function (context, myTimer) {
-    const timeStamp = new Date().toISOString();
-    
-    // Sjekker om timeren kjører etter planen
-    if (myTimer.isPastDue) {
-        context.log('Timer function is running late!');
+    const connectionString = process.env.SqlConnectionString;
+
+    try {
+        // Vi tvinger en tilkobling til SQL
+        let pool = await sql.connect(connectionString);
+        
+        // En "SELECT 1" er verdens letteste spørring, 
+        // men nok til å holde databasen våken.
+        await pool.request().query("SELECT 1"); 
+        
+        context.log('SQL Keep-Alive: Database holdes våken.');
+    } catch (err) {
+        context.log('SQL Keep-Alive feilet (er strengen lagt inn?):', err.message);
+    } finally {
+        // Viktig å lukke koblingen hver gang
+        await sql.close();
     }
-    
-    context.log('Azure Keep-Alive triggered at:', timeStamp);
-    
-    // Valgfritt: Her kan du senere legge inn en SQL-spørring 
-    // hvis du vil tvinge databasen til å holde seg våken også.
 };
