@@ -1,18 +1,21 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 
+// --- VIKTIG: BYTT UT DENNE MED DIN EKTE URL FRA AZURE PORTAL ---
+const API_BASE_URL = "https://web-database-functions-cjhmgbcuh9ajbnb0.westeurope-01.azurewebsites.net/api";
+
 function App() {
   const [innlegg, setInnlegg] = useState([]);
   const [nyTittel, setNyTittel] = useState("");
   const [nyttInnhold, setNyttInnhold] = useState("");
-
   const [loading, setLoading] = useState(true);
 
   const fetchPosts = async (showLoader = true) => {
     try {
       if (showLoader) setLoading(true);
-  
-      const response = await fetch('/api/GetPosts');
+      
+      // Bruker nå den fulle URL-en
+      const response = await fetch(`${API_BASE_URL}/GetPosts`);
       const data = await response.json();
       setInnlegg(data);
   
@@ -25,17 +28,14 @@ function App() {
 
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`/api/deletepost/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/deletepost/${id}`, {
         method: 'DELETE'
       });
   
-      if (!response.ok) {
-        throw new Error("Noe gikk galt ved sletting");
-      }
+      if (!response.ok) throw new Error("Noe gikk galt ved sletting");
   
-      console.log("Slettet!");
       setInnlegg(prev => prev.filter(post => post.Id !== id));
-      fetchPosts(false); // ❌ ingen spinner
+      fetchPosts(false);
   
     } catch (error) {
       console.error("Feil ved sletting:", error);
@@ -46,7 +46,7 @@ function App() {
     if (!nyTittel) return alert("Du må ha en tittel!");
 
     try {
-      const response = await fetch('/api/CreatePost', {
+      const response = await fetch(`${API_BASE_URL}/CreatePost`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ Tittel: nyTittel, Innhold: nyttInnhold, BildeUrl: "" })
@@ -55,15 +55,12 @@ function App() {
       if (response.ok) {
         setNyTittel("");
         setNyttInnhold("");
-        fetchPosts(false); // ❌ ingen spinner
-        const newPost = await response.json();
-setInnlegg(prev => [newPost, ...prev]);
+        fetchPosts(false);
       }
     } catch (error) {
       console.error("Feil ved publisering:", error);
     }
   };
-  
 
   useEffect(() => {
     fetchPosts();
