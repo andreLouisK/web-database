@@ -5,5 +5,5 @@ git commit -m "beskriv endringen"
 git push
 
 git add .
-git commit -m "Egen function app for backend og keepalive timer F3"
+git commit -m "lagt til slett bilde fra blob ved DeletePost"
 git push

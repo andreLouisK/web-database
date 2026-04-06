@@ -94,11 +94,11 @@ function App() {
     } finally {
       setLasterOpp(false);
       <input
-  key={valgtFil ? "valgt" : "tom"} // Dette tvinger feltet til å nullstille seg når valgtFil blir null
-  type="file"
-  accept="image/*"
-  onChange={(e) => setValgtFil(e.target.files[0])}
-/>
+        key={valgtFil ? "valgt" : "tom"} // Dette tvinger feltet til å nullstille seg når valgtFil blir null
+        type="file"
+        accept="image/*"
+        onChange={(e) => setValgtFil(e.target.files[0])}
+      />
     }
   };
 
@@ -153,7 +153,7 @@ function App() {
                 <img
                   src={post.BildeUrl}
                   alt={post.Tittel}
-                  style={{ maxWidth: '100%', marginTop: '10px', borderRadius: '8px' }}
+                  style={{ maxWidth: '100px', marginTop: '10px', borderRadius: '8px' }}
                 />
               )}
               <small>{new Date(post.Tidspunkt).toLocaleString()}</small>
