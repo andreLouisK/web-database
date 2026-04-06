@@ -1,23 +1,23 @@
 const sql = require('mssql');
 
 module.exports = async function (context, req) {
-    const config = {
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-        server: process.env.DB_SERVER,
-        database: process.env.DB_NAME,
-        options: { encrypt: true, trustServerCertificate: false }
-    };
+    // Vi henter den samlede strengen fra Azure Environment Variables
+    const connectionString = process.env.SqlConnectionString;
 
     try {
         const { Tittel, Innhold, BildeUrl } = req.body;
 
         if (!Tittel) {
-            context.res = { status: 400, body: "Tittel mangler!" };
+            context.res = { 
+                status: 400, 
+                body: "Tittel mangler!" 
+            };
             return;
         }
 
-        let pool = await sql.connect(config);
+        // Koble til direkte ved hjelp av strengen
+        let pool = await sql.connect(connectionString);
+        
         await pool.request()
             .input('tittel', sql.NVarChar, Tittel)
             .input('innhold', sql.NVarChar, Innhold)
@@ -29,8 +29,13 @@ module.exports = async function (context, req) {
             body: { message: "Innlegg opprettet!" }
         };
     } catch (err) {
-        context.res = { status: 500, body: err.message };
+        context.log("SQL Error i CreatePost:", err.message);
+        context.res = { 
+            status: 500, 
+            body: err.message 
+        };
     } finally {
+        // Viktig å lukke forbindelsen så vi ikke går tom for tilkoblinger
         await sql.close();
     }
 };
