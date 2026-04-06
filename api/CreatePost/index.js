@@ -5,7 +5,7 @@ module.exports = async function (context, req) {
     const connectionString = process.env.SqlConnectionString;
 
     try {
-        const { Tittel, Innhold, BildeUrl } = req.body;
+        const { Tittel, Innhold, BildeUrl } = req.body || {};;
 
         if (!Tittel) {
             context.res = { 
