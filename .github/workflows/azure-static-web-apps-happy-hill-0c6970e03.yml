@@ -1,4 +1,4 @@
-name: Azure Static Web Apps CI/CD
+name: Azure Static Web Apps and Functions CI/CD
 
 on:
   push:
@@ -10,29 +10,57 @@ on:
       - main
 
 jobs:
+  # --- JOBB 1: BYGG OG DEPLOY FRONTEND TIL STATIC WEB APP ---
   build_and_deploy_job:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
-    name: Build and Deploy Job
+    name: Build and Deploy Frontend
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: true
           lfs: false
+
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_HAPPY_HILL_0C6970E03 }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }} # Used for Github integrations (i.e. PR comments)
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
-          # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
-          app_location: "/" # App source code path
-          api_location: "api" # Api source code path - optional
-          output_location: "dist" # Built app content directory - optional
-          ###### End of Repository/Build Configurations ######
+          app_location: "/" 
+          api_location: "" # VIKTIG: Vi tømmer denne for å bruke dedikert Function App i stedet
+          output_location: "dist"
 
+  # --- JOBB 2: BYGG OG DEPLOY API TIL DEDIKERT FUNCTION APP ---
+  deploy_backend_job:
+    # Denne kjører kun ved push til main, ikke for PR-validering (valgfritt)
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    name: Deploy Backend Functions
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 'Install API dependencies'
+        shell: bash
+        run: |
+          pushd ./api
+          npm install
+          popd
+
+      - name: 'Deploy to Azure Functions'
+        uses: Azure/functions-action@v1
+        with:
+          app-name: 'Web-database-Functions'
+          package: './api'
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+
+  # --- JOBB 3: RYDD OPP VED LUKKING AV PULL REQUEST ---
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
