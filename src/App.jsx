@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from "react";
-import './App.css';
+import React from "react";
+import { useEffect, useState } from 'react'
+import './App.css'
 
+// --- VIKTIG: BYTT UT DENNE MED DIN EKTE URL FRA AZURE PORTAL ---
 const API_BASE_URL = "https://web-database-functions-cjhmgbcuh9ajbnb0.westeurope-01.azurewebsites.net/api";
 
 function App() {
@@ -9,13 +11,13 @@ function App() {
   const [nyttInnhold, setNyttInnhold] = useState("");
   const [loading, setLoading] = useState(true);
   const [valgtFil, setValgtFil] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const [lasterOpp, setLasterOpp] = useState(false);
+  const [lasterOpp, setLasterOpp] = useState(false); // For å vise en "laster..." melding
 
   const fetchPosts = async (showLoader = true) => {
     try {
       if (showLoader) setLoading(true);
 
+      // Bruker nå den fulle URL-en
       const response = await fetch(`${API_BASE_URL}/GetPosts`);
       const data = await response.json();
       setInnlegg(data);
@@ -43,18 +45,6 @@ function App() {
     }
   };
 
-  const handleFileChange = (file) => {
-    if (!file) return;
-
-    setValgtFil(file);
-    setPreviewUrl(URL.createObjectURL(file));
-  };
-
-  const removeImage = () => {
-    setValgtFil(null);
-    setPreviewUrl(null);
-  };
-
   const handlePublish = async () => {
     if (!nyTittel) return alert("Du må ha en tittel!");
     setLasterOpp(true);
@@ -62,18 +52,19 @@ function App() {
     try {
       let bildeUrl = "";
 
+      // STEG 1: Last opp bilde hvis det er valgt
       if (valgtFil) {
         const formData = new FormData();
         formData.append('file', valgtFil);
 
         const uploadRes = await fetch(`${API_BASE_URL}/UploadImage`, {
           method: 'POST',
-          body: formData
+          body: formData // Fetch setter automatisk riktig Content-Type for FormData
         });
 
         if (uploadRes.ok) {
           const data = await uploadRes.json();
-          bildeUrl = data.url;
+          bildeUrl = data.url; // Dette er URL-en fra Azure Blob Storage
         } else {
           alert("Kunne ikke laste opp bilde.");
           setLasterOpp(false);
@@ -81,6 +72,7 @@ function App() {
         }
       }
 
+      // STEG 2: Opprett innlegget i SQL
       const postRes = await fetch(`${API_BASE_URL}/CreatePost`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -95,120 +87,83 @@ function App() {
         setNyTittel("");
         setNyttInnhold("");
         setValgtFil(null);
-        setPreviewUrl(null);
+        // Nullstill fil-inputen i DOM-en hvis nødvendig
         fetchPosts(false);
       }
-
     } catch (error) {
       console.error("Feil under publisering:", error);
     } finally {
       setLasterOpp(false);
+      <input
+        key={valgtFil ? "valgt" : "tom"} // Dette tvinger feltet til å nullstille seg når valgtFil blir null
+        type="file"
+        accept="image/*"
+        onChange={(e) => setValgtFil(e.target.files[0])}
+      />
     }
   };
+
 
   useEffect(() => {
     fetchPosts();
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6 flex justify-center">
-      <div className="w-full max-w-2xl">
+    <div className="App">
+      <h1>Mester-Logg v2</h1>
 
-        <h1 className="text-3xl font-bold mb-6 text-center">Mester-Logg v2</h1>
+      <div className="nytt-innlegg-skjema">
+        <input
+          type="text"
+          placeholder="Tittel..."
+          value={nyTittel}
+          onChange={(e) => setNyTittel(e.target.value)}
+        />
+        <textarea
+          placeholder="Hva tenker du på?"
+          value={nyttInnhold}
+          onChange={(e) => setNyttInnhold(e.target.value)}
+        />
 
-        {/* Skjema */}
-        <div className="bg-white p-4 rounded-2xl shadow mb-6">
-          <input
-            type="text"
-            placeholder="Tittel..."
-            value={nyTittel}
-            onChange={(e) => setNyTittel(e.target.value)}
-            className="w-full mb-3 p-2 border rounded-lg"
-          />
+        {/* Ny fil-velger */}
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setValgtFil(e.target.files[0])}
+        />
 
-          <textarea
-            placeholder="Hva tenker du på?"
-            value={nyttInnhold}
-            onChange={(e) => setNyttInnhold(e.target.value)}
-            className="w-full mb-3 p-2 border rounded-lg h-24"
-          />
+        <button onClick={handlePublish} disabled={lasterOpp}>
+          {lasterOpp ? "Publiserer..." : "Lag innlegg"}
+        </button>
+      </div>
 
-          <input
-            key={valgtFil ? "valgt" : "tom"}
-            type="file"
-            accept="image/*"
-            onChange={(e) => handleFileChange(e.target.files[0])}
-            className="mb-3"
-          />
-
-          {/* Preview */}
-          {previewUrl && (
-            <div className="relative mb-3">
-              <img
-                src={previewUrl}
-                alt="Preview"
-                className="w-full max-h-60 object-cover rounded-xl"
-              />
-              <button
-                onClick={removeImage}
-                className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 text-xs rounded"
-              >
-                Fjern
-              </button>
-            </div>
-          )}
-
-          <button
-            onClick={handlePublish}
-            disabled={lasterOpp}
-            className="w-full bg-blue-500 text-white py-2 rounded-lg"
-          >
-            {lasterOpp ? "Publiserer..." : "Lag innlegg"}
-          </button>
-        </div>
-
-        {/* Liste */}
+      <div className="liste">
         {loading ? (
-          <div className="text-center mt-10">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-800 mx-auto"></div>
-            <p className="mt-3">Laster innlegg...</p>
+          <div className="spinner-container">
+            <div className="spinner"></div>
+            <p>Laster innlegg...</p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {innlegg.map((post) => (
-              <div
-                key={post.Id}
-                className="bg-white p-4 rounded-2xl shadow relative"
-              >
-                <button
-                  className="absolute top-2 right-2 text-sm text-red-500"
-                  onClick={() => handleDelete(post.Id)}
-                >
-                  Slett
-                </button>
-
-                <h3 className="text-xl font-semibold mb-1">{post.Tittel}</h3>
-                <p className="text-gray-700 mb-2">{post.Innhold}</p>
-
-                {post.BildeUrl && (
-                  <img
-                    src={post.BildeUrl}
-                    alt={post.Tittel}
-                    className="w-full max-h-60 object-cover rounded-xl mb-2"
-                  />
-                )}
-
-                <small className="text-gray-400">
-                  {new Date(post.Tidspunkt).toLocaleString()}
-                </small>
-              </div>
-            ))}
-          </div>
+          innlegg.map((post) => (
+            <div key={post.Id} className="post-card" style={{ border: '1px solid #ccc', margin: '10px', padding: '10px', borderRadius: '8px' }}>
+              <button className="absolute top-0 right-0"
+                onClick={() => handleDelete(post.Id)}>Slett</button>
+              <h3>{post.Tittel}</h3>
+              <p>{post.Innhold}</p>
+              {post.BildeUrl && (
+                <img
+                  src={post.BildeUrl}
+                  alt={post.Tittel}
+                  style={{ maxWidth: '100px', marginTop: '10px', borderRadius: '8px' }}
+                />
+              )}
+              <small>{new Date(post.Tidspunkt).toLocaleString()}</small>
+            </div>
+          ))
         )}
-
       </div>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
