@@ -5,5 +5,5 @@ git commit -m "beskriv endringen"
 git push
 
 git add .
-git commit -m "UI løft"
+git commit -m "Rettet Feil med DELETE"
 git push
