@@ -95,6 +95,7 @@ h1 {
   display: grid;
   grid-template-columns: 1fr; /* Mobil: 1 kolonne */
   gap: 25px;
+  row-gap: 25px;
   width: 100%;
 }
 
